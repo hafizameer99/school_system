@@ -3,13 +3,28 @@
     <form @submit.prevent="handleSubmit">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
-        <input type="text" class="form-control" v-model="username" id="username" aria-describedby="usernameHelp" required>
+        <input
+          type="text"
+          class="form-control"
+          v-model="username"
+          id="username"
+          aria-describedby="usernameHelp"
+          required
+        />
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" v-model="password" class="form-control" id="password" required>
+        <input
+          type="password"
+          v-model="password"
+          class="form-control"
+          id="password"
+          required
+        />
       </div>
-      <button type="submit" class="btn btn-primary">Login</button>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">
+        Login
+      </button>
     </form>
   </div>
 </template>
@@ -28,10 +43,12 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       await authStore.login(username.value, password.value);
-      if (authStore.token) {
-        router.push("/");
-      } else {
-        alert("Login failed");
+      try {
+        if (authStore.token) {
+          router.push("/stats");
+        } 
+      } catch(e) {
+
       }
     };
 
@@ -55,5 +72,4 @@ export default defineComponent({
 .login div {
   margin-bottom: 1em;
 }
-
 </style>

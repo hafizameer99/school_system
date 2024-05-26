@@ -1,8 +1,11 @@
 <template>
-  <nav  v-if="authStore.token">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-    <input type="button" class="btn btn-sm btn-danger mx-3" value="Logout" @click="handleLogout" />
+  <nav v-if="authStore.token">
+    <input
+      type="button"
+      class="btn btn-sm btn-danger mx-3"
+      value="Logout"
+      @click="handleLogout"
+    />
   </nav>
   <router-view />
 </template>
