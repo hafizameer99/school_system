@@ -1,72 +1,54 @@
-import { defineStore } from 'pinia';
-import axios from 'axios';
-// import { SchoolType, SchoolFeedbackType } from '../types/school';
-import { SchoolType } from '@/types/schoolType';
-import { SchoolFeedbackType } from '@/types/schoolFeedbackType';
-import { useAuthStore } from './auth';
+import { defineStore } from "pinia";
+import { SchoolType } from "@/types/schoolType";
+import { SchoolFeedbackType } from "@/types/schoolFeedbackType";
+import axiosInstance from "@/utils/axiosInstance";
 
-const API_BASE_URL = 'https://funcapp-takmilplatform-dev.azurewebsites.net/api';
-
-export const useSchoolDataStore = defineStore('school-data', {
+export const useSchoolDataStore = defineStore("school-data", {
   state: () => ({
     schools: [] as SchoolType[],
+    schoolFeedback: [] as SchoolFeedbackType[],
     totalSchools: 0,
-    totalStudents: 0,
-    schoolsWithElectricity: 0,
-    schoolsWithInternet: 0,
-    schoolFeedback: [] as SchoolFeedbackType[], // Add feedback data state
+    openSchool: 0,
+    closeSchool: 0,
   }),
   actions: {
     async fetchSchoolData() {
       try {
-        const authStore = useAuthStore();
-        const token = authStore.token || localStorage.getItem('token');
-
-        if (!token) {
-          throw new Error('No token found');
-        }
-
-        const response = await axios.get<SchoolType[]>(`${API_BASE_URL}/dashboard/query/viewSchoolWithNames`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const response = await axiosInstance.get<SchoolType[]>(
+          "/dashboard/query/viewSchoolWithNames"
+        );
 
         this.schools = response.data;
-
-        this.totalSchools = this.schools.length;
-        this.totalStudents = this.schools.reduce((sum, school) => sum + (school.totalStudents || 0), 0);
-        this.schoolsWithElectricity = this.schools.filter(school => school.hasElectricity).length;
-        this.schoolsWithInternet = this.schools.filter(school => school.hasInternet).length;
-
+        const functionalSchool = this.schools.filter(item => item.status === 'Functional').length;
+        this.totalSchools = functionalSchool;
       } catch (error) {
-        console.error('Failed to fetch school data:', error);
+        console.error("Failed to fetch school data:", error);
       }
     },
 
     async fetchSchoolFeedbackByDate(date: Date) {
+      console.log('date',date)
       try {
-        const authStore = useAuthStore();
-        const token = authStore.token || localStorage.getItem('token');
-
-        if (!token) {
-          throw new Error('No token found');
-        }
-
-        const response = await axios.get<SchoolFeedbackType[]>(`${API_BASE_URL}/dashboard/query/querySchoolFeedbackByDate`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          params: {
-            today: date.toISOString().slice(0, 10)
+        const response = await axiosInstance.get<SchoolFeedbackType[]>(
+          "/dashboard/query/querySchoolFeedbackByDate",
+          {
+            params: {
+              today: date.toISOString().slice(0, 10),
+            },
           }
-        });
+        );
 
         this.schoolFeedback = response.data;
 
+        const onSchool = this.schoolFeedback.filter(item => item.schoolStatus === 'On').length;
+        this.openSchool = onSchool;
+
+        const offSchool = this.schoolFeedback.filter(item => item.schoolStatus === 'Off').length;
+        this.closeSchool = offSchool;
+
       } catch (error) {
-        console.error('Failed to fetch school feedback by date:', error);
+        console.error("Failed to fetch school feedback by date:", error);
       }
-    }
-  }
+    },
+  },
 });
